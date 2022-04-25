@@ -36,7 +36,7 @@ func init() {
 	rootCmd.PersistentFlags().Uint64VarP(&id, "id", "i", 955267481772130384, "app id providing rich presence assets")
 	rootCmd.PersistentFlags().Uint16VarP(&port, "port", "p", 13579, "port to connect to")
 
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
 	go func() {
 		<-ch
@@ -71,11 +71,15 @@ func start() error {
 func forever() {
 	for {
 		if err := readVariables(); err != nil {
-			c.ResetActivity()
+			if err := c.ResetActivity(); err != nil {
+				fmt.Println(aurora.Red(err))
+			}
 			c.Logged = false
 			continue
 		} else if !c.Logged {
-			c.Login()
+			if err := c.Login(); err != nil {
+				fmt.Println(aurora.Red(err))
+			}
 		}
 		updatePayload()
 
