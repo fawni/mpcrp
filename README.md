@@ -7,6 +7,8 @@
 
 <!-- [![Go Report Card](https://goreportcard.com/badge/github.com/x6r/mpcrp)](https://goreportcard.com/report/github.com/x6r/mpcrp) -->
 
+![scrot](assets/.scrot.png)
+
 ## Installation
 
 ### Binaries
@@ -23,7 +25,7 @@ Go 1.16 or higher required. ([install instructions](https://golang.org/doc/insta
 ## Usage
 
 ```sh
-mpcrp
+mpcrp &
 ```
 
 `mpcrp -h` for more info.
