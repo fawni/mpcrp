@@ -11,7 +11,7 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/logrusorgru/aurora/v3"
-	"github.com/muesli/coral"
+	"github.com/spf13/cobra"
 	"github.com/x6r/rp"
 	"github.com/x6r/rp/rpc"
 )
@@ -53,10 +53,10 @@ var (
 	id   uint64
 	port uint16
 
-	rootCmd = &coral.Command{
+	rootCmd = &cobra.Command{
 		Use:   "mpcrp",
 		Short: "mpcrp is a cross-platform discord rich presence integration for mpc-hc",
-		RunE: func(cmd *coral.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			return start()
 		},
 	}
