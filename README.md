@@ -29,6 +29,11 @@ mpcrp &
 
 `mpcrp -h` for more info.
 
+### Flags
+
+- `-p`, `--port`: mpc-hc port to connect to _(default: 13579)_
+- `-i`, `--id`: discord app id providing rich presence assets _(default: 955267481772130384)_
+
 ## License
 
 [ISC](LICENSE)
