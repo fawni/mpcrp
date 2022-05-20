@@ -54,7 +54,7 @@ var (
 	id   uint64
 	port uint16
 
-	rootCmd = &cobra.Command{
+	cmd = &cobra.Command{
 		Use:   "mpcrp",
 		Short: "mpcrp is a cross-platform discord rich presence integration for mpc-hc",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -64,8 +64,8 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().Uint64VarP(&id, "id", "i", 955267481772130384, "app id providing rich presence assets")
-	rootCmd.PersistentFlags().Uint16VarP(&port, "port", "p", 13579, "port to connect to")
+	cmd.PersistentFlags().Uint64VarP(&id, "id", "i", 955267481772130384, "app id providing rich presence assets")
+	cmd.PersistentFlags().Uint16VarP(&port, "port", "p", 13579, "port to connect to")
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
@@ -77,7 +77,7 @@ func init() {
 }
 
 func main() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := cmd.Execute(); err != nil {
 		fmt.Println(aurora.Red(err))
 		os.Exit(1)
 	}
