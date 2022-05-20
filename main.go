@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gocolly/colly"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
 	"github.com/x6r/rp"
@@ -119,35 +120,36 @@ func forever() {
 
 func readVariables() error {
 	uri := fmt.Sprintf("http://localhost:%d/variables.html", port)
-	c := colly.NewCollector()
-	c.OnHTML(".page-variables", func(e *colly.HTMLElement) {
-		position, err := strconv.Atoi(e.ChildText("#position"))
-		if err != nil {
-			fmt.Println(aurora.Red(err))
-		}
-		duration, err := strconv.Atoi(e.ChildText("#duration"))
-		if err != nil {
-			fmt.Println(aurora.Red(err))
-		}
-		istate, err := strconv.Atoi(e.ChildText("#state"))
-		if err != nil {
-			fmt.Println(aurora.Red(err))
-		}
-		state := state(istate)
-
-		pb = playback{
-			file:           e.ChildText("#file"),
-			state:          state,
-			statestring:    e.ChildText("#statestring"),
-			position:       position,
-			duration:       duration,
-			durationstring: e.ChildText("#durationstring"),
-			version:        e.ChildText("#version"),
-		}
-	})
-	if err := c.Visit(uri); err != nil {
+	res, err := http.Get(uri)
+	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return err
+	}
+
+	doc.Find(".page-variables").Each(func(_ int, s *goquery.Selection) {
+		istate, _ := strconv.Atoi(s.Find("#state").Text())
+		state := state(istate)
+		position, _ := strconv.Atoi(s.Find("#position").Text())
+		duration, _ := strconv.Atoi(s.Find("#duration").Text())
+		pb = playback{
+			file:           s.Find("#file").Text(),
+			state:          state,
+			statestring:    s.Find("#statestring").Text(),
+			position:       position,
+			duration:       duration,
+			durationstring: s.Find("#durationstring").Text(),
+			version:        s.Find("#version").Text(),
+		}
+	})
+
 	return nil
 }
 
