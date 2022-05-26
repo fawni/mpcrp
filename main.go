@@ -1,17 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/logrusorgru/aurora/v3"
+	PTN "github.com/middelink/go-parse-torrent-name"
 	"github.com/spf13/cobra"
 	"github.com/x6r/rp"
 	"github.com/x6r/rp/rpc"
@@ -27,17 +29,12 @@ type playback struct {
 	duration       int
 	durationstring string
 	version        string
+}
 
-	// filepatharg string
-	// filepath    string
-	// filedirarg  string
-	// filedir     string
-	// positionstring string
-	// volumelevel    int
-	// muted          bool
-	// playbackrate   float32
-	// size           string
-	// reloadtime     int
+type Media struct {
+	Category string `json:"type,omitempty"`
+	Title    string `json:"title,omitempty"`
+	Poster   string `json:"poster,omitempty"`
 }
 
 const (
@@ -48,8 +45,9 @@ const (
 )
 
 var (
-	c  *rpc.Client
-	pb playback
+	c    *rpc.Client
+	pb   playback
+	file string
 
 	id   uint64
 	port uint16
@@ -113,7 +111,6 @@ func forever() {
 			}
 		}
 		updatePayload()
-
 		time.Sleep(time.Second)
 	}
 }
@@ -154,12 +151,34 @@ func readVariables() error {
 }
 
 func updatePayload() {
+	var m Media
+	ptn, err := PTN.Parse(pb.file)
+	if err != nil {
+		fmt.Println(aurora.Red(err))
+	}
+
+	if file != pb.file {
+		m = setInfo(ptn)
+	}
+
 	activity := &rpc.Activity{
-		Details:    strings.TrimSuffix(pb.file, filepath.Ext(pb.file)),
+		Details:    pb.file,
 		LargeImage: "mpc-hc",
 		LargeText:  "mpc-hc " + pb.version,
-		SmallText:  pb.statestring,
-		State:      pb.durationstring + " total",
+		SmallText:  pb.durationstring,
+	}
+
+	if m.Title != "" {
+		activity.Details = ptn.Title
+		activity.LargeImage = m.Poster
+		activity.LargeText = ptn.Title
+
+		switch m.Category {
+		case "TV Show":
+			activity.State = fmt.Sprintf("S%d:E%d", ptn.Season, ptn.Episode)
+		case "Movie":
+			activity.State = m.Category
+		}
 	}
 
 	position, duration := pb.position, pb.duration
@@ -189,4 +208,28 @@ func updatePayload() {
 	if err := c.SetActivity(activity); err != nil {
 		fmt.Println(aurora.Red(err))
 	}
+}
+
+func setInfo(ptn *PTN.TorrentInfo) Media {
+	uri := "https://fanart.tv/api/search.php?section=everything&s=" + url.QueryEscape(fmt.Sprintf("%s %d", ptn.Title, ptn.Year))
+	res, err := http.Get(uri)
+	if err != nil {
+		fmt.Println(aurora.Red(err))
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(aurora.Red(err))
+	}
+	var medias []Media
+	if err := json.Unmarshal(body, &medias); err != nil {
+		fmt.Println(aurora.Red(err))
+	}
+
+	for _, media := range medias {
+		if (media.Category == "TV Show" || media.Category == "Movie") && media.Poster != "" {
+			return media
+		}
+	}
+	return Media{}
 }
