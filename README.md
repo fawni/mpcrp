@@ -34,6 +34,14 @@ mpcrp &
 - `-p`, `--port`: mpc-hc port to connect to _(default: 13579)_
 - `-i`, `--id`: discord app id providing rich presence assets _(default: 955267481772130384)_
 
+## Disclaimer
+
+Media and fanart detection is done through the [fanart.tv](https://fanart.tv) api. mpcrp might display irrelevant data, as it is impossible to 100% identify the correct media based on the filename alone.
+
+> eg: a video named _cat.mp4_ will be assumed to be [Cat Planet Cuties](https://fanart.tv/series/173301/cat-planet-cuties/) as it is the first entry on fanart.tv that has a poster and is a tv show or a movie.
+
+If fanart.tv does not recognize the filename, mpcrp will only display the filename along with basic metadata.
+
 ## License
 
 [ISC](LICENSE)
