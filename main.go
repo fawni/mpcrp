@@ -24,7 +24,6 @@ type state int8
 type playback struct {
 	file           string
 	state          state
-	statestring    string
 	position       int
 	duration       int
 	durationstring string
@@ -51,6 +50,7 @@ var (
 
 	id   uint64
 	port uint16
+	raw  bool
 
 	cmd = &cobra.Command{
 		Use:   "mpcrp",
@@ -64,6 +64,7 @@ var (
 func init() {
 	cmd.PersistentFlags().Uint64VarP(&id, "id", "i", 955267481772130384, "app id providing rich presence assets")
 	cmd.PersistentFlags().Uint16VarP(&port, "port", "p", 13579, "port to connect to")
+	cmd.PersistentFlags().BoolVarP(&raw, "raw", "r", false, "display only the filename without fanart")
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
@@ -139,7 +140,6 @@ func readVariables() error {
 		pb = playback{
 			file:           s.Find("#file").Text(),
 			state:          state,
-			statestring:    s.Find("#statestring").Text(),
 			position:       position,
 			duration:       duration,
 			durationstring: s.Find("#durationstring").Text(),
@@ -168,7 +168,7 @@ func updatePayload() {
 		SmallText:  pb.durationstring,
 	}
 
-	if m.Title != "" {
+	if m.Title != "" && !raw {
 		activity.Details = ptn.Title
 		activity.LargeImage = m.Poster
 		activity.LargeText = ptn.Title
@@ -231,5 +231,6 @@ func setInfo(ptn *PTN.TorrentInfo) Media {
 			return media
 		}
 	}
+
 	return Media{}
 }
