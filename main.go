@@ -48,9 +48,10 @@ var (
 	pb   playback
 	file string
 
-	id   uint64
-	port uint16
-	raw  bool
+	id      uint64
+	port    uint16
+	raw     bool
+	nocover bool
 
 	cmd = &cobra.Command{
 		Use:   "mpcrp",
@@ -64,7 +65,8 @@ var (
 func init() {
 	cmd.PersistentFlags().Uint64VarP(&id, "id", "i", 955267481772130384, "app id providing rich presence assets")
 	cmd.PersistentFlags().Uint16VarP(&port, "port", "p", 13579, "port to connect to")
-	cmd.PersistentFlags().BoolVarP(&raw, "raw", "r", false, "display only the filename without fanart")
+	cmd.PersistentFlags().BoolVarP(&raw, "raw", "r", false, "do not display fanart")
+	cmd.PersistentFlags().BoolVarP(&nocover, "nocover", "", false, "display only the filename without fanart")
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
@@ -170,7 +172,9 @@ func updatePayload() {
 
 	if m.Title != "" && !raw {
 		activity.Details = ptn.Title
-		activity.LargeImage = m.Poster
+		if !nocover {
+			activity.LargeImage = m.Poster
+		}
 		activity.LargeText = ptn.Title
 
 		switch m.Category {

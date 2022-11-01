@@ -23,6 +23,8 @@ Go 1.16 or higher required. ([install instructions](https://golang.org/doc/insta
 
 ## Usage
 
+> **Warning** you have to enable the web interface in mpc-hc for mpcrp to work
+
 ```sh
 mpcrp &
 ```
@@ -33,7 +35,8 @@ mpcrp &
 
 - `-p`, `--port`: mpc-hc port to connect to _(default: 13579)_
 - `-i`, `--id`: discord app id providing rich presence assets _(default: 955267481772130384)_
-- `-r`, `--raw`: display only the filename without fanart
+- `-r`, `--raw`: display only the filename without fanart or filename-parsed metadata
+- `--nocover`: attempt to parse filename for metadata without fanart
 
 ## Disclaimer
 
