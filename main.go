@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/fawni/rp"
+	"github.com/fawni/rp/rpc"
 	"github.com/logrusorgru/aurora/v3"
 	PTN "github.com/middelink/go-parse-torrent-name"
 	"github.com/spf13/cobra"
-	"github.com/x6r/rp"
-	"github.com/x6r/rp/rpc"
 )
 
 type state int8
@@ -171,6 +171,9 @@ func updatePayload() {
 	}
 
 	if m.Title != "" && !raw {
+		if ptn.Year != 0 {
+			activity.Details = fmt.Sprintf("%s (%d)", ptn.Title, ptn.Year)
+		}
 		activity.Details = ptn.Title
 		if !nocover {
 			activity.LargeImage = m.Poster
